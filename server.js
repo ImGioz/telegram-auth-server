@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { validateTelegramWebAppData } = require('telegram-webapp-data');
+const { verifyTelegramInitData } = require('./checkTelegramInitData');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -25,7 +26,11 @@ app.post('/auth/telegram', (req, res) => {
   const { initData } = req.body;
 
   try {
-    const parsed = validateTelegramWebAppData(initData, BOT_TOKEN);
+    const parsed = verifyTelegramInitData(initData, BOT_TOKEN);
+if (!parsed) {
+  return res.status(403).json({ error: 'Invalid signature' });
+}
+
 
     const user = parsed.user;
     if (!user || !user.id) return res.status(400).json({ error: 'Invalid Telegram user' });
