@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const { validateTelegramWebAppData } = require('telegram-webapp-data');
 const { verifyTelegramInitData } = require('./checkTelegramInitData');
 const { v4: uuidv4 } = require('uuid');
 
