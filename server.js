@@ -22,16 +22,19 @@ app.use((req, res, next) => {
 });
 
 app.post('/auth/telegram', (req, res) => {
-  const { initData } = req.body;
+  const { initData } = req.body; // строка с query параметрами
+
+  if (!initData) return res.status(400).json({ error: 'No initData' });
 
   try {
-    const parsed = verifyTelegramInitData(initData, BOT_TOKEN);
-if (!parsed) {
-  return res.status(403).json({ error: 'Invalid signature' });
-}
+    if (!verifyTelegramInitData(initData, BOT_TOKEN)) {
+      return res.status(403).json({ error: 'Invalid signature' });
+    }
 
+    const params = new URLSearchParams(initData);
+    const userStr = params.get('user');
+    const user = userStr ? JSON.parse(userStr) : null;
 
-    const user = parsed.user;
     if (!user || !user.id) return res.status(400).json({ error: 'Invalid Telegram user' });
 
     const sessionId = uuidv4();
@@ -45,15 +48,16 @@ if (!parsed) {
       httpOnly: true,
       sameSite: 'Lax',
       secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.json({ success: true });
   } catch (err) {
     console.error('Auth error:', err);
-    res.status(403).json({ error: 'Invalid signature' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 app.get('/me', (req, res) => {
   const sessionId = req.cookies.sessionId;
